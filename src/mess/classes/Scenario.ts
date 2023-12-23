@@ -47,7 +47,7 @@ export class Scenario extends Controller {
 				wireframe: false,
 				shininess: 100,
 			});
-			gltf.scene.traverse((o) => {
+			gltf.scene.traverse((o: THREE.Object3D) => {
 				if (o instanceof THREE.Mesh) {
 					o.material = material;
 				}

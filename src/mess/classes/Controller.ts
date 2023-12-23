@@ -1,6 +1,9 @@
 import * as THREE from 'three';
+// @ts-ignore
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+// @ts-ignore
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
+// @ts-ignore
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
 import { Event } from './Event';
@@ -236,7 +239,7 @@ export class Controller {
 				// resource URL
 				path,
 				// called when the resource is loaded
-				(gltf) => {
+				(gltf: any) => {
 					this.scene.add(gltf.scene);
 
 					gltf.scene.scale.set(2, 2, 2);
@@ -251,7 +254,7 @@ export class Controller {
 					// gltf.asset; // Object
 					resolve(gltf);
 				},
-				(xhr) => {
+				(xhr: any) => {
 					console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
 				},
 				reject,
