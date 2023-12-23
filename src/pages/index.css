@@ -1,0 +1,34 @@
+body,
+html {
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+	width: 100%;
+}
+body {
+	background: -webkit-gradient(
+			linear,
+			left top,
+			left bottom,
+			from(var(--background-alt)),
+			to(var(--background))
+		)
+		fixed;
+	background-color: var(--background);
+	color: var(--foreground);
+	font-family: sans-serif;
+}
+
+body.daylight {
+	--background-alt: #fff;
+	--background: #ddd;
+	--foreground: #000;
+	--special: orange;
+}
+body.nightlight {
+	--background-alt: #333;
+	--background: #111;
+	--foreground: #fff;
+	--special: rgb(185, 0, 0);
+}

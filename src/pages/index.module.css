@@ -1,0 +1,50 @@
+.three {
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+}
+.ui {
+	left: 50%;
+	position: absolute;
+	text-align: center;
+	top: 65%;
+	transform: translate(-50%, -50%);
+	white-space: nowrap;
+	z-index: 2;
+}
+.text {
+	opacity: 0;
+	user-select: none;
+}
+
+.button {
+	background-color: transparent;
+	border-radius: 5px;
+	border: none;
+	color: inherit;
+	display: inline-block;
+	font-size: 0.6rem;
+	font-weight: bold;
+	padding: 1em;
+	text-decoration: none;
+	text-transform: uppercase;
+	touch-action: none;
+	transition: background-color 0.3s;
+}
+.button:hover {
+	background-color: var(--special);
+	cursor: pointer;
+}
+
+.nightlight {
+	position: absolute;
+	z-index: 2;
+	bottom: 5px;
+	right: 5px;
+}
