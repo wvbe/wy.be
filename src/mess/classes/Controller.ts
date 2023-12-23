@@ -230,12 +230,8 @@ export class Controller {
 	}
 
 	addGltf(path: string): Promise<GLTF> {
-		// Instantiate a loader
-		const loader = new GLTFLoader().setDRACOLoader(DRACO_LOADER);
-		// loader.setPath(path);
-		// Load a glTF resource
 		return new Promise((resolve, reject) =>
-			loader.load(
+			new GLTFLoader().setDRACOLoader(DRACO_LOADER).load(
 				// resource URL
 				path,
 				// called when the resource is loaded
@@ -247,15 +243,10 @@ export class Controller {
 					gltf.scene.position.y = 0; //Position (y = up+, down-)
 					gltf.scene.position.z = 0; //Position (z = front +, back-)
 
-					// gltf.animations; // Array<THREE.AnimationClip>
-					// gltf.scene; // THREE.Group
-					// gltf.scenes; // Array<THREE.Group>
-					// gltf.cameras; // Array<THREE.Camera>
-					// gltf.asset; // Object
 					resolve(gltf);
 				},
 				(xhr: any) => {
-					console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+					// console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
 				},
 				reject,
 			),
