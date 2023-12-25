@@ -2,7 +2,7 @@ import { FC, useCallback, useEffect, useRef } from 'react';
 import styles from './index.module.css';
 import './index.css';
 
-import { Scenario } from '@/mess/classes/Scenario';
+import { Scenario } from '@/mess/three/Scenario';
 
 const Derp: FC = () => {
 	const scenario = useRef<Scenario | null>(null);
