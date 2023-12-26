@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Controller } from './Controller';
-import { Event } from './Event';
+import { Controller } from '../../mess/three/Controller';
+import { Event } from '../../mess/three/Event';
 const PREFER_DARK_MODE = false;
 
 export class Scenario extends Controller {

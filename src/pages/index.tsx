@@ -1,8 +1,8 @@
 import { FC, useCallback, useEffect, useRef } from 'react';
-import styles from './index.module.css';
-import './index.css';
+import styles from './index/index.module.css';
+import './index/index.css';
 
-import { Scenario } from '@/mess/three/Scenario';
+import { Scenario } from '@/pages/index/Scenario';
 
 const Derp: FC = () => {
 	const scenario = useRef<Scenario | null>(null);
