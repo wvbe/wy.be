@@ -181,7 +181,7 @@ export class Controller {
 	/**
 	 * Point the camera right at a ThreeJS coordinate
 	 */
-	protected setCameraFocusOnVector3(vector: THREE.Vector3) {
+	public setCameraFocusOnVector3(vector: THREE.Vector3) {
 		this.camera.lookAt(vector);
 		this.controls.target = vector;
 	}
@@ -257,6 +257,7 @@ export class Controller {
 	 * Call for all objects etc. to be updated, and render once.
 	 */
 	private renderAnimationFrame() {
+		// console.log('R'
 		this.$update.emit();
 		this.controls.update();
 		this.renderer.render(this.scene, this.camera);
