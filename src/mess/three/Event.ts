@@ -1,11 +1,11 @@
-import { type CallbackFn, type DestroyerFn } from '../types.ts';
+import { type CallbackFn, type DestroyerFn } from '../types';
 
 const MSG_MEMORY_LEAK = `You've called the destroyer of an event listener that was already destroyed, this may indicate a memory leak`;
 /**
  * A Kreuz event emitter/listener. Always remember to unset your listeners at some point.
  */
 export class Event<Args extends unknown[] = []> {
-	#callbacks: CallbackFn<Args>[] = [];
+	private callbacks: CallbackFn<Args>[] = [];
 
 	protected label: string;
 
@@ -17,7 +17,7 @@ export class Event<Args extends unknown[] = []> {
 	 * @deprecated Here for test purposes only/
 	 */
 	get $$$listeners() {
-		return this.#callbacks.length;
+		return this.callbacks.length;
 	}
 
 	/**
@@ -37,13 +37,13 @@ export class Event<Args extends unknown[] = []> {
 			);
 		}
 		const cancel = () => {
-			const index = this.#callbacks.indexOf(callback);
+			const index = this.callbacks.indexOf(callback);
 			if (index === -1) {
 				throw new Error(MSG_MEMORY_LEAK);
 			}
-			this.#callbacks.splice(index, 1);
+			this.callbacks.splice(index, 1);
 		};
-		this.#callbacks.push(callback);
+		this.callbacks.push(callback);
 		return cancel;
 	}
 
@@ -67,13 +67,13 @@ export class Event<Args extends unknown[] = []> {
 			callback(...args);
 			cancel();
 		};
-		this.#callbacks.push(run);
+		this.callbacks.push(run);
 		const cancel = () => {
-			const index = this.#callbacks.indexOf(run);
+			const index = this.callbacks.indexOf(run);
 			if (index === -1) {
 				throw new Error(MSG_MEMORY_LEAK);
 			}
-			this.#callbacks.splice(index, 1);
+			this.callbacks.splice(index, 1);
 		};
 		return cancel;
 	}
@@ -86,7 +86,7 @@ export class Event<Args extends unknown[] = []> {
 		// while once-ers change the true callbacks list by reference.
 		//
 		// Use a `for` loop to have one less useless line of stack tracing
-		const callbacks = this.#callbacks.slice();
+		const callbacks = this.callbacks.slice();
 		for (let i = 0; i < callbacks.length; i++) {
 			callbacks[i](...args);
 		}
@@ -152,6 +152,6 @@ export class Event<Args extends unknown[] = []> {
 	 * Remove all listeners to this event.
 	 */
 	public clear() {
-		this.#callbacks = [];
+		this.callbacks = [];
 	}
 }

@@ -56,12 +56,12 @@ export class Controller {
 	 *
 	 * This event fires probably 60 times per second while the controller is started.
 	 */
-	public readonly $update = new Event();
+	public readonly $update = new Event('ThreeController#$update');
 
 	/**
 	 * The event that the viewport is resized
 	 */
-	public readonly $resize = new Event();
+	public readonly $resize = new Event('ThreeController#$resize');
 
 	/**
 	 * The event that the ThreeJS canvas was clicked, but it was not on an entity or tile.
@@ -72,7 +72,7 @@ export class Controller {
 	 * The event that the camera moves, or as ThreeJS puts it:
 	 *   "Fires when the camera has been transformed by the controls.""
 	 */
-	public readonly $camera = new Event();
+	public readonly $camera = new Event('ThreeController#$camera');
 
 	public constructor(root: HTMLElement, options: ThreeControllerOptions) {
 		this.$destruct.once(() => {

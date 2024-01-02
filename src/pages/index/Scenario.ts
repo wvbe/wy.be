@@ -16,7 +16,7 @@ export class Scenario extends Controller {
 
 	public darkMode = PREFER_DARK_MODE;
 
-	$light = new Event();
+	$light = new Event('Scenario#$light');
 
 	setLightMode(nightlight: boolean) {
 		this.darkMode = nightlight;
