@@ -17,6 +17,8 @@ const Derp: FC = () => {
 			fieldOfView: 45,
 			pixelRatio: window.devicePixelRatio || 1,
 			restrictCameraAngle: false,
+			renderCss3D: false,
+			renderWebGL: true,
 		});
 
 		scenario.current.start();

@@ -38,6 +38,7 @@ export class Scenario extends Controller {
 		const directional2 = new THREE.DirectionalLight(0xffffff, 2.7);
 		directional2.position.set(-1, 1, -1).normalize();
 		this.scene.add(directional2);
+		console.log('LoD');
 
 		const gltf = await this.addGltf('gltf/pizza-low-res.gltf');
 

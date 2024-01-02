@@ -7,6 +7,7 @@ import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
 import { Event } from './Event';
+import { CSS3DRenderer } from 'three/examples/jsm/Addons.js';
 
 type ThreeControllerOptions = {
 	fieldOfView: number;
@@ -15,12 +16,9 @@ type ThreeControllerOptions = {
 	enablePan: boolean;
 	enableZoom: boolean;
 	restrictCameraAngle: boolean;
+	renderWebGL: boolean;
+	renderCss3D: boolean;
 };
-
-// This global mapping helps reduce the amount of new WebGLRenderer that need to be created. If
-// created too many, the oldest renderer will be cleaned up at some point -- which is probably the
-// main renderer, and the screen goes blank.
-const RENDERER_BY_ELEMENT = new WeakMap<HTMLElement, THREE.WebGLRenderer | null>();
 
 const DRACO_LOADER = new DRACOLoader(new THREE.LoadingManager()).setDecoderPath(
 	`https://unpkg.com/three@0.${THREE.REVISION}.x/examples/js/libs/draco/gltf/`,
@@ -29,7 +27,7 @@ export class Controller {
 	public animating = false;
 
 	public scene: THREE.Scene;
-	public renderer: THREE.WebGLRenderer;
+	public renderers: Array<THREE.Renderer | CSS3DRenderer>;
 	public camera: THREE.Camera;
 	public controls: OrbitControls;
 	public raycaster: THREE.Raycaster;
@@ -96,35 +94,48 @@ export class Controller {
 		this.scene = new THREE.Scene();
 
 		// https://threejs.org/docs/#api/en/renderers/WebGLRenderer
-		this.renderer =
-			RENDERER_BY_ELEMENT.get(root) ||
-			new THREE.WebGLRenderer({
-				antialias: true,
-				alpha: true,
+		this.renderers = [
+			options.renderWebGL &&
+				new THREE.WebGLRenderer({
+					antialias: true,
+					alpha: true,
+				}),
+			options.renderCss3D && new CSS3DRenderer(),
+		].filter((renderer): renderer is THREE.WebGLRenderer | CSS3DRenderer => !!renderer);
+
+		this.$destruct.once(() => {
+			this.renderers.forEach((renderer) => {
+				if (renderer instanceof THREE.WebGLRenderer) {
+					renderer.dispose();
+				}
 			});
-		RENDERER_BY_ELEMENT.set(root, this.renderer);
-		this.$destruct.once(() => this.renderer.dispose.bind(this.renderer));
+		});
 
 		// Set the camera;
 		//   https://threejs.org/docs/#api/en/cameras/OrthographicCamera
 		//   https://threejs.org/docs/#api/en/cameras/PerspectiveCamera
 		const { aspect } = this.getViewportSize();
-		this.camera = new THREE.PerspectiveCamera(options.fieldOfView, aspect, 0.1, 1000);
+		this.camera = new THREE.PerspectiveCamera(options.fieldOfView, aspect, 0.1, 10000);
 		this.$destruct.once(
 			this.$resize.on(() => {
 				const { aspect, width, height } = this.getViewportSize();
 				const camera = this.camera as THREE.PerspectiveCamera;
 				camera.aspect = aspect;
 				camera.updateProjectionMatrix();
-				this.renderer.setSize(width * options.pixelRatio, height * options.pixelRatio, false);
+				this.renderers.forEach((renderer) => {
+					const pixelRatio = renderer instanceof THREE.WebGLRenderer ? options.pixelRatio : 1;
+					renderer.setSize(width * pixelRatio, height * pixelRatio, false);
+				});
 			}),
 		);
 		this.$resize.emit();
-		this.renderer.domElement.style.width = '100%';
-		this.renderer.domElement.style.height = '100%';
+		this.renderers.forEach((renderer) => {
+			renderer.domElement.style.width = '100%';
+			renderer.domElement.style.height = '100%';
+		});
 
 		// https://threejs.org/docs/#examples/en/controls/OrbitControls
-		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+		this.controls = new OrbitControls(this.camera, this.renderers[0].domElement);
 		if (options.restrictCameraAngle) {
 			this.controls.maxPolarAngle = 0.45 * Math.PI;
 		}
@@ -141,8 +152,12 @@ export class Controller {
 		this.raycaster = new THREE.Raycaster();
 
 		// Mount the goddamn thing
-		root.appendChild(this.renderer.domElement);
-		this.$destruct.once(() => root.removeChild(this.renderer.domElement));
+		this.renderers.reverse().forEach((renderer) => {
+			root.appendChild(renderer.domElement);
+		});
+		this.$destruct.once(() => {
+			this.renderers.forEach((renderer) => root.removeChild(renderer.domElement));
+		});
 
 		const handleResize = this.$resize.emit.bind(this.$resize);
 		globalThis.addEventListener('resize', handleResize);
@@ -260,7 +275,7 @@ export class Controller {
 		// console.log('R'
 		this.$update.emit();
 		this.controls.update();
-		this.renderer.render(this.scene, this.camera);
+		this.renderers.forEach((renderer) => renderer.render(this.scene, this.camera));
 	}
 
 	/**

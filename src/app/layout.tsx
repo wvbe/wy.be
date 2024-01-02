@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+
 import './layout.css';
 import styles from './layout.module.css';
-import Link from 'next/link';
 
 export const metadata: Metadata = {
 	title: 'https://wy.be',
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 					{children}
 					<aside className={styles.copyright}>
-						whatever I said, if it was smart it copyrighted
+						whatever I said, if it was smart it is copyrighted
 					</aside>
 				</div>
 			</body>
