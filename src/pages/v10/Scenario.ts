@@ -1,3 +1,4 @@
+import gsap from 'gsap';
 import * as THREE from 'three';
 import { CSS3DObject } from 'three/examples/jsm/Addons.js';
 
@@ -11,14 +12,16 @@ type NodeConfiguration = {
 type Node = {
 	label: string;
 	children: Node[];
+	parent: Node | null;
 	rotation: { x: number; y: number; z: number };
 	distance: number;
 	group: THREE.Group;
 };
 
-const C3PR = 100;
+const C3PR = 300;
 
 export class Scenario extends Controller {
+	private defaultCameraDistance = 3;
 	public constructor(element: HTMLElement, graph: NodeConfiguration) {
 		super(element, {
 			enableAutoRotate: false,
@@ -30,8 +33,36 @@ export class Scenario extends Controller {
 			renderCss3D: true,
 			renderWebGL: true,
 		});
-		this.setCameraPosition(new THREE.Vector3(6 * C3PR, 0, 0));
-		this.setCameraFocusOnVector3(new THREE.Vector3(0, 0, 0));
+		const rootNode = (function createRandomizedNodeGraph(
+			node: NodeConfiguration,
+			parent: Node | null = null,
+		): Node {
+			let depth = 0,
+				p = parent;
+			while (p) {
+				depth++;
+				p = p.parent;
+			}
+			const nnode: Node = {
+				...node,
+				rotation: {
+					x: 2 * Math.PI * Math.random(),
+					y: (depth <= 1 ? 2 : 0.8) * Math.PI * Math.random(),
+					z: (depth <= 1 ? 2 : 0.2) * Math.PI * Math.random(),
+				},
+				distance: depth <= 1 ? 3 : 2,
+				parent,
+				children: [],
+				group: new THREE.Group(),
+			};
+			nnode.children.push(...node.children.map((c) => createRandomizedNodeGraph(c, nnode)));
+			return nnode;
+		})(graph, null);
+
+		const initialCamera = this.getCameraSettingsForNode(rootNode);
+		this.setCameraPosition(initialCamera.position.multiplyScalar(2));
+		this.setCameraFocusOnVector3(initialCamera.target);
+		this.camera.up = initialCamera.up;
 
 		this.scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
@@ -43,23 +74,7 @@ export class Scenario extends Controller {
 		directional2.position.set(-1 * C3PR, 1 * C3PR, -1 * C3PR).normalize();
 		this.scene.add(directional2);
 
-		this.scene.add(
-			this.createNodeMesh(
-				(function createRandomizedNodeGraph(node: NodeConfiguration, depth = 0): Node {
-					return {
-						...node,
-						rotation: {
-							x: 2 * Math.PI * Math.random(),
-							y: (depth <= 1 ? 2 : 0.8) * Math.PI * Math.random(),
-							z: (depth <= 1 ? 2 : 0.2) * Math.PI * Math.random(),
-						},
-						distance: depth <= 1 ? 3 : 2,
-						children: node.children.map((c) => createRandomizedNodeGraph(c, depth + 1)),
-						group: new THREE.Group(),
-					};
-				})(graph),
-			),
-		);
+		this.scene.add(this.createNodeMesh(rootNode));
 
 		this.addAxisHelper();
 
@@ -75,7 +90,7 @@ export class Scenario extends Controller {
 			);
 			const intersections = this.raycaster.intersectObjects(this.scene.children, true);
 			if (!intersections.length && this.activeNodeWindow) {
-				this.switchNodeWindow(null);
+				// this.switchNodeWindow(null);
 			}
 			for (let i = 0; i < intersections.length; i++) {
 				const onClick = (intersections[i].object as any)?.userData?.onClick;
@@ -85,6 +100,8 @@ export class Scenario extends Controller {
 				}
 			}
 		});
+		this.switchNodeWindow(rootNode);
+		this.animateCameraFocusOnNode(rootNode);
 	}
 
 	/**
@@ -153,7 +170,7 @@ export class Scenario extends Controller {
 		titlebar.position.z = padding;
 
 		const group = new THREE.Group();
-		group.rotateY(0.5 * Math.PI);
+		group.rotateY(-0.5 * Math.PI);
 		group.add(outline);
 		group.add(titlebar);
 
@@ -185,15 +202,15 @@ export class Scenario extends Controller {
 	 */
 	private createNodeMesh(node: Node, parent?: Node) {
 		const group = new THREE.Group();
-		// const geometry = new THREE.IcosahedronGeometry(0.15, 1);
-		const geometry = new THREE.BoxGeometry(0.1 * C3PR, 0.1 * C3PR, 0.1 * C3PR);
+		const geometry = new THREE.IcosahedronGeometry(0.02 * C3PR, 1);
+		// const geometry = new THREE.BoxGeometry(0.1 * C3PR, 0.1 * C3PR, 0.1 * C3PR);
 		const material = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: false });
 		const mesh = new THREE.Mesh(geometry, material);
 		const innergroup = node.group;
 
 		mesh.userData.onClick = () => {
-			console.log('CLICKED A THING', node);
 			this.switchNodeWindow(node);
+			this.animateCameraFocusOnNode(node);
 			// innergroup.add(this.createNodeWindow(node));
 		};
 
@@ -227,5 +244,77 @@ export class Scenario extends Controller {
 		});
 
 		return group;
+	}
+
+	private animateGsap<Thing extends {}>(
+		from: Thing,
+		to: Thing,
+		duration: number,
+		ease = 'expo.inOut',
+	): Promise<void> {
+		const promise = new Promise<void>((resolve) =>
+			gsap.to(from, {
+				...to,
+				ease,
+				duration,
+				onUpdate: () => {
+					this.controls.update();
+				},
+				onComplete: () => {
+					resolve();
+				},
+			}),
+		);
+		return promise;
+	}
+
+	private getCameraSettingsForNode(node: Node) {
+		const target = node.group.getWorldPosition(new THREE.Vector3());
+
+		const deltaBetweenNodeAndParentVector = node.parent
+			? node.parent.group.getWorldPosition(new THREE.Vector3()).sub(target).normalize()
+			: new THREE.Vector3(1, 0, 0);
+		const position = target
+			.clone()
+			.sub(deltaBetweenNodeAndParentVector.multiplyScalar(this.defaultCameraDistance * C3PR));
+
+		const up = new THREE.Vector3(0, 1, 0).applyQuaternion(
+			node.group.getWorldQuaternion(new THREE.Quaternion()),
+		);
+
+		return {
+			target,
+			position,
+			up,
+		};
+	}
+	/**
+	 * Animates the camera to 1) move in front of the node that is being looked at, 2) point at the node
+	 * and 3) adjust its own rotation to that of the node.
+	 */
+	private async animateCameraFocusOnNode(node: Node) {
+		const animations: Promise<void>[] = [];
+
+		this.controls.enabled = false;
+		const { target, position, up } = this.getCameraSettingsForNode(node);
+
+		// Change what the camera is pointing at
+		animations.push(this.animateGsap(this.controls.target, target, 1, 'expo.out'));
+
+		// Change where the camera is positioned
+		const positionJiggle = new THREE.Vector3(
+			0.7 + Math.random() * 0.6,
+			0.7 + Math.random() * 0.6,
+			0.7 + Math.random() * 0.6,
+		);
+		animations.push(this.animateGsap(this.camera.position, position.multiply(positionJiggle), 1.5));
+
+		// Change the "Up" direction of the camera to rotate it. This works better than changing the camera .rotation, because
+		// of some normalisation thing in OrbitControls;
+		// const upJiggle = new THREE.Vector3(Math.random() * -5, 1, -0.25 + Math.random() * 0.5);
+		animations.push(this.animateGsap(this.camera.up, up, 1.5));
+
+		await Promise.all(animations);
+		this.controls.enabled = true;
 	}
 }
