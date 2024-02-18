@@ -17,6 +17,7 @@
 	transform: translate(-50%, -50%);
 	white-space: nowrap;
 	z-index: 2;
+	letter-spacing: 0.3rem;
 }
 .text {
 	opacity: 0;
@@ -47,4 +48,12 @@
 	z-index: 2;
 	bottom: 5px;
 	right: 5px;
+}
+
+.name,
+.name em {
+	font-weight: bold;
+	font-style: normal;
+	font-size: 0.8rem;
+	text-transform: uppercase;
 }

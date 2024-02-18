@@ -186,13 +186,11 @@ export class Scenario extends Controller {
 	private createNodeWindowHtml(node: Node) {
 		const el = window.document.createElement('div');
 		el.appendChild(window.document.createTextNode(node.label));
-		// el.style.backgroundColor = 'rgba(255,0,0,1)';
 		el.style.userSelect = 'none';
 		el.style.backgroundColor = 'red';
 		el.style.border = '1px solid red';
-		const size = C3PR;
-		el.style.width = `${size * 1.6}px`;
-		el.style.height = `${size * 1}px`;
+		el.style.width = `${C3PR * 1.6}px`;
+		el.style.height = `${C3PR * 1}px`;
 
 		return el;
 	}

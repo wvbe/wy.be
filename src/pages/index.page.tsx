@@ -48,6 +48,9 @@ const Derp: FC = () => {
 			</a>
 
 			<div className={styles.ui}>
+				<p className={styles.name}>
+					<em>Wybe</em> Minnebo
+				</p>
 				<p>
 					<a
 						href="https://github.com/wvbe?tab=repositories"
