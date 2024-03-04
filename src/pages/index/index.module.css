@@ -32,11 +32,17 @@
 	display: inline-block;
 	font-size: 0.6rem;
 	font-weight: bold;
-	padding: 1em;
 	text-decoration: none;
 	text-transform: uppercase;
 	touch-action: none;
 	transition: background-color 0.3s;
+	line-height: 3em;
+	height: 3em;
+	padding: 0 1em;
+}
+.button > * {
+	vertical-align: middle;
+	line-height: 3em;
 }
 .button:hover {
 	background-color: var(--special);
