@@ -21,6 +21,7 @@ const Derp: FC = () => {
 			renderCss3D: false,
 			renderWebGL: true,
 		});
+		scenario.current.setLightMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
 
 		scenario.current.start();
 	}, []);
@@ -30,6 +31,20 @@ const Derp: FC = () => {
 			return;
 		}
 		scenario.current.setLightMode(!scenario.current.darkMode);
+	}, []);
+
+	useEffect(() => {
+		if (!window.matchMedia) {
+			return;
+		}
+		const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
+		const handlePreferenceChange = (event: MediaQueryListEvent) => {
+			scenario.current?.setLightMode(!!event.matches);
+		};
+		prefersDarkMode.addEventListener('change', handlePreferenceChange);
+		return () => {
+			prefersDarkMode.removeEventListener('change', handlePreferenceChange);
+		};
 	}, []);
 
 	return (
