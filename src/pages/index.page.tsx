@@ -1,9 +1,8 @@
 import { FC, useCallback, useEffect, useRef } from 'react';
-import styles from './index/index.module.css';
 import './index/index.css';
+import styles from './index/index.module.css';
 
 import { Scenario } from '@/pages/index/Scenario';
-import { DownloadIcon } from '@/mess/components/DownloadIcon';
 
 const Derp: FC = () => {
 	const scenario = useRef<Scenario | null>(null);
@@ -87,16 +86,7 @@ const Derp: FC = () => {
 						className={styles.button}
 						title="LinkedIn is where you can find my professional life, click here to visit."
 					>
-						resume
-					</a>{' '}
-					<a
-						href="/cv-wybe-minnebo-20240304-public.pdf"
-						className={styles.button}
-						target="_blank"
-						title="Download my CV as a PDF"
-					>
-						PDF
-						<DownloadIcon />
+						work
 					</a>
 				</p>
 			</div>
